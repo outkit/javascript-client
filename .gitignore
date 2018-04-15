@@ -1,0 +1,9 @@
+node_modules/
+.DS_Store
+*.sublime-workspace
+config/local.js
+public/build
+npm-debug.log
+data/
+tests/manual
+support
