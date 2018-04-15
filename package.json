@@ -1,5 +1,5 @@
 {
-  "name": "outkit",
+  "name": "@outkit/outkit",
   "version": "0.0.1",
   "description": "JavaScript API client for the Outkit service",
   "main": "lib/index.js",

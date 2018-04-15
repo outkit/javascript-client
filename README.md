@@ -4,7 +4,7 @@ This is the official JavaScript client for the [Outkit](https://outkit.io/) API.
 ## Installation
 
 ```
-npm install outkit
+npm install @outkit/outkit
 ```
 
 ## Usage
