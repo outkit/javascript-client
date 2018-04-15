@@ -45,9 +45,14 @@ const messageRecord = {
 const data = await client.createMessage(messageRecord);
 
 // ... or traditional callback-style
-client.createMessage(messageRecord, (err, data, response) => {
+client.createMessage(messageRecord, (err, data) => {
   // handle error or use data
 });
+
+// Both calling styles support a second opts object, where you can 
+// set `returnResponse` to true to get the full response from the
+// underlying http library, not just the response body. Like so:
+const data = await client.createMessage(messageRecord, {returnResponse: true});
 ```
 
 ### Rendering a message
@@ -78,33 +83,37 @@ can see exactly what was/will be sent.
 const data = await client.getMessage(messageId);
 
 // Or using callback-style
-client.getMessage(messageId, (err, resp, data) => {
+client.getMessage(messageId, (err, data) => {
   // handle error or use data
 });
 ```
 
 ### Return values
-Both API calls return a single JSON document with information about the message being submitted/inquired about. Which fields have 
-content at any given time depends on which fields were submitted and the current status of the message.
+Both API calls return a single JSON document (wrapped in a `data` key) with information about the message 
+being submitted/inquired about, as well as an outer `meta` key with metadata. Which fields have content at 
+any given time depends on which fields were submitted and the current status of the message.
 
 ```js
 {
-  type: 'email',
-  id: '578b072e-79e4-441e-b696-784aa744bf6e',
-  project: 'my-project',
-  template: 'my-welcome',
-  to: 'some.name@example.com',
-  from: 'other.name@example.com',
-  status: 'received',
-  subject: 'Welcome, Jane!',
-  html_body: null,
-  text_body: null,
-  data: null,
-  created_at: '2017-07-21T19:17:35.383277Z',
-  failed_at: null,
-  queued_at: null,
-  delivered_at: null,
-  done: false,
+  meta: {...},
+  data: {
+    type: 'email',
+    id: '578b072e-79e4-441e-b696-784aa744bf6e',
+    project: 'my-project',
+    template: 'my-welcome',
+    to: 'some.name@example.com',
+    from: 'other.name@example.com',
+    status: 'received',
+    subject: 'Welcome, Jane!',
+    html_body: null,
+    text_body: null,
+    data: null,
+    created_at: '2017-07-21T19:17:35.383277Z',
+    failed_at: null,
+    queued_at: null,
+    delivered_at: null,
+    done: false,
+  },
 }
 ```
 
