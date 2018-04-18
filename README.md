@@ -9,6 +9,7 @@ npm install @outkit/outkit
 
 ## Usage
 
+
 ### Authentication and setup
 ```js
 const Outkit = require('outkit');
@@ -21,9 +22,10 @@ const client = new Outkit.Client({
 ```
 
 ### Submitting a message
-Submitting a message for rendering and/or delivery will return a message record with the Outkit ID and the status set to `received`. 
-The API call returns as soon as the message is saved on our servers, it does not wait for rendering or delivery to take place. You 
-can retrieve the status of a message at any time. We also support webhook notifications on status changes.
+Submitting a message for rendering and/or delivery will return a message record with the Outkit ID and the status set to `received`
+(as well as a few other properties that can be determined at creation time). The API call returns as soon as the message 
+is saved on our servers, it does not wait for rendering or delivery to take place (by default - see the section on synchronous
+processing below). You can retrieve the status of a message at any time. We also support webhook notifications on status changes.
 
 ```js
 // Construct a message record
@@ -42,27 +44,67 @@ const messageRecord = {
 };
 
 // Then submit it, either using Promises...
-const data = await client.createMessage(messageRecord);
+const message = await client.createMessage(messageRecord);
 
 // ... or traditional callback-style
-client.createMessage(messageRecord, (err, data) => {
-  // handle error or use data
+client.createMessage(messageRecord, (err, message) => {
+  // handle error or use message
 });
 
 // Both calling styles support a second opts object, where you can 
 // set `returnResponse` to true to get the full response from the
-// underlying http library, not just the response body. Like so:
-const data = await client.createMessage(messageRecord, {returnResponse: true});
+// underlying HTTP library, not just the response body. Like so:
+const response = await client.createMessage(messageRecord, {returnResponse: true});
 ```
 
-### Rendering a message
+### Retrieving a message
+You can retrieve the status and data of a message at any time. After the message has been rendered, we will also return the 
+applicable rendered fields (`subject`, `html_body` and `text_body` for emails, `text_body` for SMS messages) so that you 
+can see exactly what was/will be sent.
+
+```js
+// Using Promises
+const message = await client.getMessage(messageId);
+
+// Or using callback-style
+client.getMessage(messageId, (err, message) => {
+  // handle error or use message
+});
+```
+
+## Return values
+Both API calls return a single JavaScript object with information about the message being submitted/inquired about. 
+Which fields have content at any given time depends on which fields were submitted and the current status of the message.
+
+```js
+{
+  type: 'email',
+  id: '578b072e-79e4-441e-b696-784aa744bf6e',
+  project: 'my-project',
+  template: 'my-welcome',
+  to: 'some.name@example.com',
+  from: 'other.name@example.com',
+  status: 'received',
+  subject: 'Welcome, Jane!',
+  html_body: null,
+  text_body: null,
+  data: null,
+  created_at: '2017-07-21T19:17:35.383277Z',
+  failed_at: null,
+  queued_at: null,
+  delivered_at: null,
+  done: false,
+}
+```
+
+## Rendering a message
 To support the use case of rendering a message using the Outkit infrastructure, but sending it yourself, you can specify
 `render_only: true` in the message record.
 
 Once the message has been rendered, its data will contain a `text_body` field (all types), and `subject` and `html_body` 
 fields for emails. These can then be fed directly to, say, a Mailgun client or SMTP server. See details below.
 
-### Synchronous processing
+## Synchronous processing
 For some use cases (sending emails from scripts, using Outkit as a renderer etc.), it can be desirable to have the
 API calls operate synchronously - ie. attempt rendering/delivery immediately instead of queueing them, and return the 
 rendered message and (optionally) its delivery status in the data from the API call. This can be accomplished by setting 
@@ -72,50 +114,6 @@ Note that this will incur additional costs (see our pricing page for details), a
 a limited number of such requests (currently 100.000 per month), since they are more difficult and costly for us to scale.
 Customers that need additional synchronous requests can contact support to have their monthly limit raised.
 
-
-### Retrieving a message
-You can retrieve the status and data of a message at any time. After the message has been rendered, we will also return the 
-applicable rendered fields (`subject`, `html_body` and `text_body` for emails, `text_body` for SMS messages) so that you 
-can see exactly what was/will be sent.
-
-```js
-// Using Promises
-const data = await client.getMessage(messageId);
-
-// Or using callback-style
-client.getMessage(messageId, (err, data) => {
-  // handle error or use data
-});
-```
-
-### Return values
-Both API calls return a single JSON document (wrapped in a `data` key) with information about the message 
-being submitted/inquired about, as well as an outer `meta` key with metadata. Which fields have content at 
-any given time depends on which fields were submitted and the current status of the message.
-
-```js
-{
-  meta: {...},
-  data: {
-    type: 'email',
-    id: '578b072e-79e4-441e-b696-784aa744bf6e',
-    project: 'my-project',
-    template: 'my-welcome',
-    to: 'some.name@example.com',
-    from: 'other.name@example.com',
-    status: 'received',
-    subject: 'Welcome, Jane!',
-    html_body: null,
-    text_body: null,
-    data: null,
-    created_at: '2017-07-21T19:17:35.383277Z',
-    failed_at: null,
-    queued_at: null,
-    delivered_at: null,
-    done: false,
-  },
-}
-```
 
 ## Message lifecycle
 
@@ -148,3 +146,19 @@ can inspect the full backend response in the `response` field.
 
 All messages have a `done` flag (true or false) which indicate whether we have finished processing it. Nothing more
 will happen to a message once it is done, regardless of its status.
+
+
+## A note on function names
+The method names for messages (`getMessage` and `createMessage`) are deliberately generic, to align them with future 
+expansions of the API (say, `createProject`). So even though you might feel like you are _submitting_ or 
+_sending_ a message (and we often use terms like that in our own docs), in API terms you are always just 
+`createMessage`-ing it.
+
+You’ll probably wrap our functions in your own `sendSms` or `enqueueEmail` or whatever anyway, so it 
+shouldn’t be much of an issue. We feel that when dealing with APIs and their clients, consistency trumps linguistic 
+accuracy.
+
+
+## TODO
+* Add proper tests with mocks
+

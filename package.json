@@ -1,6 +1,6 @@
 {
   "name": "@outkit/outkit",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "JavaScript API client for the Outkit service",
   "main": "lib/index.js",
   "directories": {
@@ -31,7 +31,6 @@
   },
   "dependencies": {
     "lodash.assign": "^4.2.0",
-    "request": "^2.85.0",
-    "request-promise-native": "^1.0.5"
+    "request": "^2.85.0"
   }
 }
