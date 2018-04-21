@@ -12,7 +12,7 @@ npm install @outkit/outkit
 
 ### Authentication and setup
 ```js
-const Outkit = require('outkit');
+const Outkit = require('@outkit/outkit');
 
 const client = new Outkit.Client({
   key: '',           // Fill in your API key
