@@ -41,6 +41,10 @@ const messageRecord = {
     // ...
     // Add the values for any variables used in the template here
   },
+  attachments: [
+    '/path/to/some/local/file1.png',
+    '/path/to/some/local/file2.png',
+  ]
 };
 
 // Then submit it, either using Promises...
